@@ -1,5 +1,5 @@
 # EasyTab
-Single-header multi-platform tablet library
+Single-header multi-platform tablet library, for easy integration of drawing tablets (e.g. Wacom) into your code.
 
 ## Features
 * Single-file header-only. Extremely easy to integrate.

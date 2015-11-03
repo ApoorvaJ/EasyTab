@@ -561,14 +561,12 @@ typedef struct
 #endif // WIN32
 } EasyTabInfo;
 
-static EasyTabInfo* EasyTab;
-
 // -----------------------------------------------------------------------------
 // Function declarations
 // -----------------------------------------------------------------------------
 #if defined(__linux__)
 
-EasyTabResult EasyTab_Load(Display* Disp, Window Win);
+    EasyTabResult EasyTab_Load(Display* Disp, Window Win);
     EasyTabResult EasyTab_HandleEvent(XEvent* Event);
     void EasyTab_Unload();
 
@@ -581,7 +579,7 @@ EasyTabResult EasyTab_Load(Display* Disp, Window Win);
 #else
 
     // Save some trouble when porting.
-#error "Unsupported platform."
+    #error "Unsupported platform."
 
 #endif // __linux__ _WIN32
 // -----------------------------------------------------------------------------
@@ -596,6 +594,7 @@ EasyTabResult EasyTab_Load(Display* Disp, Window Win);
 
 #ifdef EASYTAB_IMPLEMENTATION
 
+static EasyTabInfo* EasyTab;
 
 // -----------------------------------------------------------------------------
 // Linux implementation

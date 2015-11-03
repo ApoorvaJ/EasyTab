@@ -147,10 +147,11 @@ typedef enum
     EASYTAB_OK = 0,
 
     // Errors
-    EASYTAB_MEMORY_ERROR      = -1,
-    EASYTAB_X11_ERROR         = -2,
-    EASYTAB_DLL_LOAD_ERROR    = -3,
-    EASYTAB_WACOM_WIN32_ERROR = -4,
+    EASYTAB_MEMORY_ERROR           = -1,
+    EASYTAB_X11_ERROR              = -2,
+    EASYTAB_DLL_LOAD_ERROR         = -3,
+    EASYTAB_WACOM_WIN32_ERROR      = -4,
+    EASYTAB_INVALID_FUNCTION_ERROR = -5,
 
     EASYTAB_EVENT_NOT_HANDLED = -16,
 } EasyTabResult;
@@ -705,7 +706,7 @@ void EasyTab_Unload()
     if (!EasyTab->func)                                                         \
     {                                                                           \
         OutputDebugStringA("Function " #func " not found in Wintab32.dll.\n");  \
-        return false;                                                           \
+        return EASYTAB_INVALID_FUNCTION_ERROR;                                                           \
     }
 
 EasyTabResult EasyTab_Load(HWND Window)

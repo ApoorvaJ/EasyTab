@@ -157,6 +157,8 @@
 #define EASYTAB_H
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __linux__
 #include <X11/extensions/XInput.h>

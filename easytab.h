@@ -148,6 +148,8 @@
 
 // TODO: Null checks and warnings for EasyTab
 // TODO: Differentiate between stylus and eraser in the API
+// TODO: Add Linux support for relative mode
+// TODO: Add documentation for relative mode
 
 // =============================================================================
 // EasyTab header section
@@ -177,6 +179,12 @@ typedef enum
 
     EASYTAB_EVENT_NOT_HANDLED = -16,
 } EasyTabResult;
+
+typedef enum
+{
+    EASYTAB_MODE_SYSTEM   = 0,
+    EASYTAB_MODE_RELATIVE = 1,
+} EasyTabMode;
 
 #ifdef WIN32
 // -----------------------------------------------------------------------------
@@ -596,7 +604,7 @@ extern EasyTabInfo* EasyTab;
 
 #elif defined(_WIN32)
 
-    EasyTabResult EasyTab_Load(HWND Window);
+    EasyTabResult EasyTab_Load(HWND Window, EasyTabMode Mode = EASYTAB_MODE_SYSTEM, uint32_t Sensitivity = 5000);
     EasyTabResult EasyTab_HandleEvent(HWND Window, UINT Message, LPARAM LParam, WPARAM WParam);
     void EasyTab_Unload();
 
@@ -732,7 +740,7 @@ void EasyTab_Unload()
         return EASYTAB_INVALID_FUNCTION_ERROR;                                                           \
     }
 
-EasyTabResult EasyTab_Load(HWND Window)
+EasyTabResult EasyTab_Load(HWND Window, EasyTabMode Mode, uint32_t Sensitivity)
 {
     EasyTab = (EasyTabInfo*)calloc(1, sizeof(EasyTabInfo)); // We want init to zero, hence calloc.
     if (!EasyTab) { return EASYTAB_MEMORY_ERROR; }
@@ -807,6 +815,13 @@ EasyTabResult EasyTab_Load(HWND Window)
         LogContext.lcSysOrgY = 0;
         LogContext.lcSysExtX = GetSystemMetrics(SM_CXSCREEN);
         LogContext.lcSysExtY = GetSystemMetrics(SM_CYSCREEN);
+
+        if (Mode == EASYTAB_MODE_RELATIVE)
+        {
+            LogContext.lcSysMode = 1;
+            LogContext.lcSysSensX = Sensitivity;
+            LogContext.lcSysSensY = Sensitivity;
+        }
 
         EasyTab->Context = EasyTab->WTOpenA(Window, &LogContext, TRUE);
 

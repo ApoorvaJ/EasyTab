@@ -159,6 +159,7 @@
 #define EASYTAB_H
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -178,13 +179,15 @@ typedef enum
     EASYTAB_INVALID_FUNCTION_ERROR = -5,
 
     EASYTAB_EVENT_NOT_HANDLED = -16,
+
+	EASYTAB_INVALID_ARGUMENT_ERROR = -32
 } EasyTabResult;
 
 typedef enum
 {
-    EASYTAB_MODE_SYSTEM   = 0,
-    EASYTAB_MODE_RELATIVE = 1,
-} EasyTabMode;
+	EASYTAB_TRACKINGMODE_ABSOLUTE = 0,
+	EASYTAB_TRACKINGMODE_RELATIVE = 1
+} EasyTabTrackingMode;
 
 #ifdef WIN32
 // -----------------------------------------------------------------------------
@@ -591,6 +594,13 @@ typedef struct
 #endif // WIN32
 } EasyTabInfo;
 
+typedef struct
+{
+	EasyTabTrackingMode TrackingMode;
+	bool TabletMovesSystemCursor;
+	int32_t RelativeModeSensitivity;
+} EasyTabLoadExInfo;
+
 extern EasyTabInfo* EasyTab;
 
 // -----------------------------------------------------------------------------
@@ -604,7 +614,8 @@ extern EasyTabInfo* EasyTab;
 
 #elif defined(_WIN32)
 
-    EasyTabResult EasyTab_Load(HWND Window, EasyTabMode Mode = EASYTAB_MODE_SYSTEM, uint32_t Sensitivity = 5000);
+    EasyTabResult EasyTab_Load(HWND Window);
+	EasyTabResult EasyTab_Load_Ex(HWND Window, EasyTabLoadExInfo* LoadInfo);
     EasyTabResult EasyTab_HandleEvent(HWND Window, UINT Message, LPARAM LParam, WPARAM WParam);
     void EasyTab_Unload();
 
@@ -740,8 +751,23 @@ void EasyTab_Unload()
         return EASYTAB_INVALID_FUNCTION_ERROR;                                                           \
     }
 
-EasyTabResult EasyTab_Load(HWND Window, EasyTabMode Mode, uint32_t Sensitivity)
+EasyTabResult EasyTab_Load(HWND Window)
 {
+	EasyTabLoadExInfo LoadInfo;
+	LoadInfo.TabletMovesSystemCursor = true;
+	LoadInfo.TrackingMode = EASYTAB_TRACKINGMODE_ABSOLUTE;
+	LoadInfo.RelativeModeSensitivity = 5000;
+	return(EasyTab_Load_Ex(Window, &LoadInfo));
+}
+
+EasyTabResult EasyTab_Load_Ex(HWND Window, EasyTabLoadExInfo* LoadInfo)
+{
+	if(		LoadInfo->TrackingMode != EASYTAB_TRACKINGMODE_ABSOLUTE
+		&&	LoadInfo->TrackingMode != EASYTAB_TRACKINGMODE_RELATIVE)
+	{
+		return(EASYTAB_INVALID_ARGUMENT_ERROR);
+	}
+
     EasyTab = (EasyTabInfo*)calloc(1, sizeof(EasyTabInfo)); // We want init to zero, hence calloc.
     if (!EasyTab) { return EASYTAB_MEMORY_ERROR; }
 
@@ -795,11 +821,30 @@ EasyTabResult EasyTab_Load(HWND Window, EasyTabMode Mode, uint32_t Sensitivity)
         EasyTab->WTInfoA(WTI_DEVICES, DVC_NPRESSURE, &Pressure);
 
         LogContext.lcPktData = PACKETDATA; // ??
-        LogContext.lcOptions |= CXO_SYSTEM;
+		if(LoadInfo->TabletMovesSystemCursor)
+		{
+			LogContext.lcOptions |= CXO_SYSTEM;
+		}
         LogContext.lcOptions |= CXO_MESSAGES;
         LogContext.lcPktMode = PACKETMODE;
         LogContext.lcMoveMask = PACKETDATA;
         LogContext.lcBtnUpMask = LogContext.lcBtnDnMask;
+
+		if(LoadInfo->TrackingMode == EASYTAB_TRACKINGMODE_RELATIVE)
+		{
+			LogContext.lcPktMode |= PK_X | PK_Y;
+			LogContext.lcSysMode = 1;
+			if(LoadInfo->TabletMovesSystemCursor)
+			{
+				LogContext.lcSysSensX = LoadInfo->RelativeModeSensitivity;
+				LogContext.lcSysSensY = LoadInfo->RelativeModeSensitivity;
+			}
+			else
+			{
+				LogContext.lcSensX = LoadInfo->RelativeModeSensitivity;
+				LogContext.lcSensY = LoadInfo->RelativeModeSensitivity;
+			}
+		}
 
         LogContext.lcInOrgX = 0;
         LogContext.lcInOrgY = 0;
@@ -815,13 +860,6 @@ EasyTabResult EasyTab_Load(HWND Window, EasyTabMode Mode, uint32_t Sensitivity)
         LogContext.lcSysOrgY = 0;
         LogContext.lcSysExtX = GetSystemMetrics(SM_CXSCREEN);
         LogContext.lcSysExtY = GetSystemMetrics(SM_CYSCREEN);
-
-        if (Mode == EASYTAB_MODE_RELATIVE)
-        {
-            LogContext.lcSysMode = 1;
-            LogContext.lcSysSensX = Sensitivity;
-            LogContext.lcSysSensY = Sensitivity;
-        }
 
         EasyTab->Context = EasyTab->WTOpenA(Window, &LogContext, TRUE);
 

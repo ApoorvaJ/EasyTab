@@ -834,8 +834,17 @@ EasyTabResult EasyTab_Load_Ex(HWND Window,
 
         if (TrackingMode == EASYTAB_TRACKING_MODE_RELATIVE)
         {
+            LogContext.lcPktMode |= PK_X | PK_Y; // TODO: Should this be included in the
+                                                 //       PACKETMODE macro define up top?
             LogContext.lcSysMode = 1;
-            LogContext.lcSysSensX = LogContext.lcSysSensY = RelativeModeSensitivity;
+            if (MoveCursor)
+            {
+                LogContext.lcSysSensX = LogContext.lcSysSensY = RelativeModeSensitivity;
+            }
+            else
+            {
+                LogContext.lcSensX = LogContext.lcSensY = RelativeModeSensitivity;
+            }
         }
 
         EasyTab->Context = EasyTab->WTOpenA(Window, &LogContext, TRUE);

@@ -148,6 +148,8 @@
 
 // TODO: Null checks and warnings for EasyTab
 // TODO: Differentiate between stylus and eraser in the API
+// TODO: Add Linux support for relative mode
+// TODO: Add documentation for relative mode
 
 // =============================================================================
 // EasyTab header section

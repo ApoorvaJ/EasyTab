@@ -913,6 +913,7 @@ EasyTabResult EasyTab_HandleEvent(HWND Window, UINT Message, LPARAM LParam, WPAR
         {
             LeftContext = true;
         }
+        return EASYTAB_OK;
     }
 
     return EASYTAB_EVENT_NOT_HANDLED;

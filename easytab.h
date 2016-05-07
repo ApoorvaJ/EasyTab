@@ -846,13 +846,15 @@ EasyTabResult EasyTab_Load_Ex(HWND Window,
             LogContext.lcPktMode |= PK_X | PK_Y; // TODO: Should this be included in the
                                                  //       PACKETMODE macro define up top?
             LogContext.lcSysMode = 1;
+            const uint32_t SensitivityScalingFactor = 0x10000; // Sensitivity is set as a 32-bit fixed point with the radix point between the two words.
+            // TODO: Document this better.
             if (MoveCursor)
             {
-                LogContext.lcSysSensX = LogContext.lcSysSensY = (FIX32)(RelativeModeSensitivity*0x10000);
+                LogContext.lcSysSensX = LogContext.lcSysSensY = (uint32_t)(RelativeModeSensitivity*SensitivityScalingFactor);
             }
             else
             {
-                LogContext.lcSensX = LogContext.lcSensY = (FIX32)(RelativeModeSensitivity*0x10000);
+                LogContext.lcSensX = LogContext.lcSensY = (uint32_t)(RelativeModeSensitivity*SensitivityScalingFactor);
             }
         }
 

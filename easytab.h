@@ -321,6 +321,8 @@ typedef enum
         #define WTI_DDCTXS      400 /* 1.1 */
         #define WTI_DSCTXS      500 /* 1.1 */
 
+
+
     #endif // Flags
 
     typedef struct tagAXIS {
@@ -379,7 +381,7 @@ typedef enum
 // -----------------------------------------------------------------------------
 
 #define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE
-#define PACKETMODE PK_BUTTONS
+#define PACKETMODE 0
 
 // -----------------------------------------------------------------------------
 // pktdef.h
@@ -556,6 +558,12 @@ typedef struct
 
     int32_t RangeX, RangeY;
     int32_t MaxPressure;
+
+    int32_t Buttons;
+
+    int32_t InContext;
+
+    int32_t IsRelative;
 
 #ifdef __linux__
     XDevice* Device;
@@ -834,6 +842,7 @@ EasyTabResult EasyTab_Load_Ex(HWND Window,
 
         if (TrackingMode == EASYTAB_TRACKING_MODE_RELATIVE)
         {
+            EasyTab->IsRelative = 1;
             LogContext.lcPktMode |= PK_X | PK_Y; // TODO: Should this be included in the
                                                  //       PACKETMODE macro define up top?
             LogContext.lcSysMode = 1;
@@ -870,8 +879,8 @@ EasyTabResult EasyTab_Load_Ex(HWND Window,
 
 EasyTabResult EasyTab_HandleEvent(HWND Window, UINT Message, LPARAM LParam, WPARAM WParam)
 {
+    static bool LeftContext = true;
     PACKET Packet = { 0 };
-
     if (Message == WT_PACKET &&
         (HCTX)LParam == EasyTab->Context &&
         EasyTab->WTPacket(EasyTab->Context, (UINT)WParam, &Packet))
@@ -879,12 +888,31 @@ EasyTabResult EasyTab_HandleEvent(HWND Window, UINT Message, LPARAM LParam, WPAR
         POINT Point = { 0 };
         Point.x = Packet.pkX;
         Point.y = Packet.pkY;
-        ScreenToClient(Window, &Point);
+        if(LeftContext && EasyTab->IsRelative)
+        {
+            Point.x = 0;
+            Point.y = 0;
+            LeftContext = false;
+        }
+        if(!EasyTab->IsRelative)
+        {
+            ScreenToClient(Window, &Point);
+        }
         EasyTab->PosX = Point.x;
         EasyTab->PosY = Point.y;
-
+        EasyTab->Buttons = Packet.pkButtons;
         EasyTab->Pressure = (float)Packet.pkNormalPressure / (float)EasyTab->MaxPressure;
         return EASYTAB_OK;
+    
+    }
+    else if(Message == WT_PROXIMITY &&
+            (HCTX)WParam == EasyTab->Context)
+    {
+        EasyTab->InContext = LParam;
+        if(LParam == 0)
+        {
+            LeftContext = true;
+        }
     }
 
     return EASYTAB_EVENT_NOT_HANDLED;

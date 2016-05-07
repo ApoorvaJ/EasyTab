@@ -615,7 +615,7 @@ extern EasyTabInfo* EasyTab;
     EasyTabResult EasyTab_Load(HWND Window);
     EasyTabResult EasyTab_Load_Ex(HWND Window,
                                   EasyTabTrackingMode Mode,
-                                  uint32_t RelativeModeSensitivity,
+                                  float RelativeModeSensitivity,
                                   int32_t MoveCursor);
     EasyTabResult EasyTab_HandleEvent(HWND Window,
                                       UINT Message,
@@ -758,12 +758,12 @@ void EasyTab_Unload()
 
 EasyTabResult EasyTab_Load(HWND Window)
 {
-    return EasyTab_Load_Ex(Window, EASYTAB_TRACKING_MODE_SYSTEM, 0, 1);
+    return EasyTab_Load_Ex(Window, EASYTAB_TRACKING_MODE_SYSTEM, 1.0f, 1);
 }
 
 EasyTabResult EasyTab_Load_Ex(HWND Window,
                               EasyTabTrackingMode TrackingMode,
-                              uint32_t RelativeModeSensitivity,
+                              float RelativeModeSensitivity,
                               int32_t MoveCursor)
 {
     EasyTab = (EasyTabInfo*)calloc(1, sizeof(EasyTabInfo)); // We want init to zero, hence calloc.
@@ -848,11 +848,11 @@ EasyTabResult EasyTab_Load_Ex(HWND Window,
             LogContext.lcSysMode = 1;
             if (MoveCursor)
             {
-                LogContext.lcSysSensX = LogContext.lcSysSensY = RelativeModeSensitivity;
+                LogContext.lcSysSensX = LogContext.lcSysSensY = (FIX32)(RelativeModeSensitivity*0x1000);
             }
             else
             {
-                LogContext.lcSensX = LogContext.lcSensY = RelativeModeSensitivity;
+                LogContext.lcSensX = LogContext.lcSensY = (FIX32)(RelativeModeSensitivity*0x1000);
             }
         }
 

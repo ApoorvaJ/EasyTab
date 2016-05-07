@@ -848,11 +848,11 @@ EasyTabResult EasyTab_Load_Ex(HWND Window,
             LogContext.lcSysMode = 1;
             if (MoveCursor)
             {
-                LogContext.lcSysSensX = LogContext.lcSysSensY = (FIX32)(RelativeModeSensitivity*0x1000);
+                LogContext.lcSysSensX = LogContext.lcSysSensY = (FIX32)(RelativeModeSensitivity*0x10000);
             }
             else
             {
-                LogContext.lcSensX = LogContext.lcSensY = (FIX32)(RelativeModeSensitivity*0x1000);
+                LogContext.lcSensX = LogContext.lcSensY = (FIX32)(RelativeModeSensitivity*0x10000);
             }
         }
 

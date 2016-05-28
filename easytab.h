@@ -817,11 +817,6 @@ EasyTabResult EasyTab_Load_Ex(HWND Window,
         LogContext.lcMoveMask = PACKETDATA;
         LogContext.lcBtnUpMask = LogContext.lcBtnDnMask;
 
-        LogContext.lcInOrgX = 0;
-        LogContext.lcInOrgY = 0;
-        LogContext.lcInExtX = RangeX.axMax;
-        LogContext.lcInExtY = RangeY.axMax;
-
         LogContext.lcOutOrgX = 0;
         LogContext.lcOutOrgY = 0;
         LogContext.lcOutExtX = GetSystemMetrics(SM_CXSCREEN);

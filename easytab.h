@@ -129,6 +129,38 @@
             EasyTab_Unload();                                          // Unload
         }
 
+    3) MacOS:
+
+        @implementation MyView {
+        - (void) mouseMoved:(NSEvent*)event     { EasyTab_HandleEvent(event); }
+        - (void) mouseDown:(NSEvent*)event      { EasyTab_HandleEvent(event); }
+        - (void) mouseUp:(NSEvent*)event        { EasyTab_HandleEvent(event); }
+        - (void) mouseDragged:(NSEvent*)event   { EasyTab_HandleEvent(event); }
+        }
+
+        int main(...)
+        {
+
+            if (EasyTab_Load() != EASYTAB_OK)                   // Load
+            {
+                printf("Tablet init failed\n");
+            }
+
+            ...
+
+            // Once you've set up EasyTab loading, unloading and event handling,
+            // use the EasyTab variable at any point in your program to access
+            // the tablet state:
+            //    EasyTab->PosX
+            //    EasyTab->PosY
+            //    EasyTab->Pressure
+            // For more tablet information, look at the EasyTabInfo struct.
+
+            ...
+
+            EasyTab_Unload();                                          // Unload
+        }
+
     ----------------------------------------------------------------------------
     CREDITS
     ----------------------------------------------------------------------------
@@ -615,6 +647,12 @@ extern EasyTabInfo* EasyTab;
                                       WPARAM WParam);
     void EasyTab_Unload();
 
+#elif defined(__APPLE__)
+
+    EasyTabResult EasyTab_Load();
+    EasyTabResult EasyTab_HandleEvent(NSEvent *event);
+    void EasyTab_Unload();
+
 #else
 
     // Save some trouble when porting.
@@ -716,6 +754,7 @@ EasyTabResult EasyTab_Load(Display* Disp, Window Win)
 
 EasyTabResult EasyTab_HandleEvent(XEvent* Event)
 {
+
     if (Event->type != EasyTab->MotionType) { return EASYTAB_EVENT_NOT_HANDLED; }
 
     XDeviceMotionEvent* MotionEvent = (XDeviceMotionEvent*)(Event);
@@ -895,6 +934,37 @@ void EasyTab_Unload()
 
 #endif // WIN32
 // -----------------------------------------------------------------------------
+
+#ifdef __APPLE__
+
+EasyTabResult EasyTab_Load()
+{
+    EasyTab = (EasyTabInfo*)calloc(1, sizeof(EasyTabInfo)); // We want init to zero, hence calloc.
+    if (!EasyTab) { return EASYTAB_MEMORY_ERROR; }
+    return EASYTAB_OK;
+}
+
+EasyTabResult EasyTab_HandleEvent(NSEvent* event)
+{
+                                NSEventType     type = event.type               ;
+    float                                   pressure                            ;
+                                NSPoint          loc = [event locationInWindow] ;
+    if(type != NSMouseMoved)                pressure = [event pressure ]        ;
+    else                                    pressure = 0.0                      ;
+    EasyTab->PosX     = loc.x;
+    EasyTab->PosY     = loc.y;
+    EasyTab->Pressure = pressure;
+    return EASYTAB_OK;
+
+}
+
+void EasyTab_Unload()
+{
+    free(EasyTab);
+    EasyTab = NULL;
+}
+
+#endif // __APPLE__
 
 
 #endif // EASYTAB_IMPLEMENTATION

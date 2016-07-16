@@ -3,7 +3,7 @@ Single-header multi-platform tablet library, for easy integration of drawing tab
 
 ## Features
 * Single-file header-only. Extremely easy to integrate.
-* Multi-platform. Currently supports Windows and Linux.
+* Multi-platform. Currently supports Windows, Linux and OSX.
 * Simple API. Only 3 API calls.
 * Public domain
 

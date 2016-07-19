@@ -325,6 +325,8 @@ typedef enum
         #define WTI_DDCTXS      400 /* 1.1 */
         #define WTI_DSCTXS      500 /* 1.1 */
 
+
+
     #endif // Flags
 
     typedef struct tagAXIS {
@@ -583,6 +585,12 @@ typedef struct
     int32_t RangeX, RangeY;
     int32_t MaxPressure;
 
+    int32_t Buttons;
+
+    int32_t InContext;
+
+    int32_t IsRelative;
+
 #ifdef __linux__
     XDevice* Device;
     uint32_t MotionType;
@@ -633,7 +641,7 @@ extern EasyTabInfo* EasyTab;
     EasyTabResult EasyTab_Load(HWND Window);
     EasyTabResult EasyTab_Load_Ex(HWND Window,
                                   EasyTabTrackingMode Mode,
-                                  uint32_t RelativeModeSensitivity,
+                                  float RelativeModeSensitivity,
                                   int32_t MoveCursor);
     EasyTabResult EasyTab_HandleEvent(HWND Window,
                                       UINT Message,
@@ -776,12 +784,12 @@ void EasyTab_Unload()
 
 EasyTabResult EasyTab_Load(HWND Window)
 {
-    return EasyTab_Load_Ex(Window, EASYTAB_TRACKING_MODE_SYSTEM, 0, 1);
+    return EasyTab_Load_Ex(Window, EASYTAB_TRACKING_MODE_SYSTEM, 1.0f, 1);
 }
 
 EasyTabResult EasyTab_Load_Ex(HWND Window,
                               EasyTabTrackingMode TrackingMode,
-                              uint32_t RelativeModeSensitivity,
+                              float RelativeModeSensitivity,
                               int32_t MoveCursor)
 {
     EasyTab = (EasyTabInfo*)calloc(1, sizeof(EasyTabInfo)); // We want init to zero, hence calloc.
@@ -855,16 +863,19 @@ EasyTabResult EasyTab_Load_Ex(HWND Window,
 
         if (TrackingMode == EASYTAB_TRACKING_MODE_RELATIVE)
         {
+            EasyTab->IsRelative = 1;
             LogContext.lcPktMode |= PK_X | PK_Y; // TODO: Should this be included in the
                                                  //       PACKETMODE macro define up top?
             LogContext.lcSysMode = 1;
+            const uint32_t SensitivityScalingFactor = 0x10000; // Sensitivity is set as a 32-bit fixed point with the radix point between the two words.
+            // TODO: Document this better.
             if (MoveCursor)
             {
-                LogContext.lcSysSensX = LogContext.lcSysSensY = RelativeModeSensitivity;
+                LogContext.lcSysSensX = LogContext.lcSysSensY = (uint32_t)(RelativeModeSensitivity*SensitivityScalingFactor);
             }
             else
             {
-                LogContext.lcSensX = LogContext.lcSensY = RelativeModeSensitivity;
+                LogContext.lcSensX = LogContext.lcSensY = (uint32_t)(RelativeModeSensitivity*SensitivityScalingFactor);
             }
         }
 
@@ -891,8 +902,8 @@ EasyTabResult EasyTab_Load_Ex(HWND Window,
 
 EasyTabResult EasyTab_HandleEvent(HWND Window, UINT Message, LPARAM LParam, WPARAM WParam)
 {
+    static bool LeftContext = true;
     PACKET Packet = { 0 };
-
     if (Message == WT_PACKET &&
         (HCTX)LParam == EasyTab->Context &&
         EasyTab->WTPacket(EasyTab->Context, (UINT)WParam, &Packet))
@@ -900,12 +911,32 @@ EasyTabResult EasyTab_HandleEvent(HWND Window, UINT Message, LPARAM LParam, WPAR
         POINT Point = { 0 };
         Point.x = Packet.pkX;
         Point.y = Packet.pkY;
-        ScreenToClient(Window, &Point);
+        if(LeftContext && EasyTab->IsRelative)
+        {
+            Point.x = 0;
+            Point.y = 0;
+            LeftContext = false;
+        }
+        if(!EasyTab->IsRelative)
+        {
+            ScreenToClient(Window, &Point);
+        }
         EasyTab->PosX = Point.x;
         EasyTab->PosY = Point.y;
-
+        EasyTab->Buttons = Packet.pkButtons;
         EasyTab->Pressure = (float)Packet.pkNormalPressure / (float)EasyTab->MaxPressure;
         EasyTab->Buttons = Packet.pkButtons;
+        return EASYTAB_OK;
+    
+    }
+    else if(Message == WT_PROXIMITY &&
+            (HCTX)WParam == EasyTab->Context)
+    {
+        EasyTab->InContext = LParam;
+        if(LParam == 0)
+        {
+            LeftContext = true;
+        }
         return EASYTAB_OK;
     }
 

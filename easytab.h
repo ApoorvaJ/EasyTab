@@ -166,6 +166,10 @@
 #include <X11/extensions/XInput.h>
 #endif // __linux__
 
+#ifdef _WIN32
+#include <windows.h>
+#endif // _WIN32
+
 typedef enum
 {
     EASYTAB_OK = 0,
@@ -391,95 +395,95 @@ typedef enum
 
     #ifndef PACKETNAME
     /* if no packet name prefix */
-    #define __PFX(x)	x
-    #define __IFX(x,y)	x ## y
+    #define __PFX(x)    x
+    #define __IFX(x,y)  x ## y
     #else
     /* add prefixes and infixes to packet format names */
-    #define __PFX(x)		__PFX2(PACKETNAME,x)
-    #define __PFX2(p,x)		__PFX3(p,x)
-    #define __PFX3(p,x)		p ## x
-    #define __IFX(x,y)		__IFX2(x,PACKETNAME,y)
-    #define __IFX2(x,i,y)	__IFX3(x,i,y)
-    #define __IFX3(x,i,y)	x ## i ## y
+    #define __PFX(x)        __PFX2(PACKETNAME,x)
+    #define __PFX2(p,x)     __PFX3(p,x)
+    #define __PFX3(p,x)     p ## x
+    #define __IFX(x,y)      __IFX2(x,PACKETNAME,y)
+    #define __IFX2(x,i,y)   __IFX3(x,i,y)
+    #define __IFX3(x,i,y)   x ## i ## y
     #endif
 
-    #define __SFX2(x,s)		__SFX3(x,s)
-    #define __SFX3(x,s)		x ## s
+    #define __SFX2(x,s)     __SFX3(x,s)
+    #define __SFX3(x,s)     x ## s
 
-    #define __TAG  	__IFX(tag,PACKET)
-    #define __TYPES	__PFX(PACKET), * __IFX(P,PACKET), NEAR * __IFX(NP,PACKET), FAR * __IFX(LP,PACKET)
+    #define __TAG   __IFX(tag,PACKET)
+    #define __TYPES __PFX(PACKET), * __IFX(P,PACKET), NEAR * __IFX(NP,PACKET), FAR * __IFX(LP,PACKET)
 
-    #define __TAGE  	__IFX(tag,PACKETEXT)
-    #define __TYPESE	__PFX(PACKETEXT), * __IFX(P,PACKETEXT), NEAR * __IFX(NP,PACKETEXT), FAR * __IFX(LP,PACKETEXT)
+    #define __TAGE      __IFX(tag,PACKETEXT)
+    #define __TYPESE    __PFX(PACKETEXT), * __IFX(P,PACKETEXT), NEAR * __IFX(NP,PACKETEXT), FAR * __IFX(LP,PACKETEXT)
 
-    #define __DATA		(__PFX(PACKETDATA))
-    #define __MODE		(__PFX(PACKETMODE))
-    #define __EXT(x)	__SFX2(__PFX(PACKET),x)
+    #define __DATA      (__PFX(PACKETDATA))
+    #define __MODE      (__PFX(PACKETMODE))
+    #define __EXT(x)    __SFX2(__PFX(PACKET),x)
 
 
     typedef struct __TAG {
     #if (__DATA & PK_CONTEXT)
-        HCTX			pkContext;
+        HCTX            pkContext;
     #endif
     #if (__DATA & PK_STATUS)
-        UINT			pkStatus;
+        UINT            pkStatus;
     #endif
     #if (__DATA & PK_TIME)
-        DWORD			pkTime;
+        DWORD           pkTime;
     #endif
     #if (__DATA & PK_CHANGED)
-        WTPKT			pkChanged;
+        WTPKT           pkChanged;
     #endif
     #if (__DATA & PK_SERIAL_NUMBER)
-        UINT			pkSerialNumber;
+        UINT            pkSerialNumber;
     #endif
     #if (__DATA & PK_CURSOR)
-        UINT			pkCursor;
+        UINT            pkCursor;
     #endif
     #if (__DATA & PK_BUTTONS)
-        DWORD			pkButtons;
+        DWORD           pkButtons;
     #endif
     #if (__DATA & PK_X)
-        LONG			pkX;
+        LONG            pkX;
     #endif
     #if (__DATA & PK_Y)
-        LONG			pkY;
+        LONG            pkY;
     #endif
     #if (__DATA & PK_Z)
-        LONG			pkZ;
+        LONG            pkZ;
     #endif
     #if (__DATA & PK_NORMAL_PRESSURE)
     #if (__MODE & PK_NORMAL_PRESSURE)
         /* relative */
-        int			pkNormalPressure;
+        int         pkNormalPressure;
     #else
         /* absolute */
-        UINT		pkNormalPressure;
+        UINT        pkNormalPressure;
     #endif
     #endif
     #if (__DATA & PK_TANGENT_PRESSURE)
     #if (__MODE & PK_TANGENT_PRESSURE)
         /* relative */
-        int			pkTangentPressure;
+        int         pkTangentPressure;
     #else
         /* absolute */
-        UINT		pkTangentPressure;
+        UINT        pkTangentPressure;
     #endif
     #endif
     #if (__DATA & PK_ORIENTATION)
-        ORIENTATION		pkOrientation;
+        ORIENTATION     pkOrientation;
     #endif
     #if (__DATA & PK_ROTATION)
-        ROTATION		pkRotation; /* 1.1 */
+        ROTATION        pkRotation; /* 1.1 */
     #endif
 
     #ifndef NOWTEXTENSIONS
                                     /* extensions begin here. */
     #if (__EXT(FKEYS) == PKEXT_RELATIVE) || (__EXT(FKEYS) == PKEXT_ABSOLUTE)
-        UINT			pkFKeys;
+        UINT            pkFKeys;
     #endif
     #if (__EXT(TILT) == PKEXT_RELATIVE) || (__EXT(TILT) == PKEXT_ABSOLUTE)
-        TILT			pkTilt;
+        TILT            pkTilt;
     #endif
     #endif
 
@@ -487,16 +491,16 @@ typedef enum
 
     #ifndef NOWTEXTENSIONS
     typedef struct __TAGE {
-        EXTENSIONBASE	pkBase;
+        EXTENSIONBASE   pkBase;
 
     #if (__EXT(EXPKEYS) == PKEXT_RELATIVE) || (__EXT(EXPKEYS) == PKEXT_ABSOLUTE)
         EXPKEYSDATA pkExpKeys; /* 1.4 */
     #endif
     #if (__EXT(TOUCHSTRIP) == PKEXT_RELATIVE) || (__EXT(TOUCHSTRIP) == PKEXT_ABSOLUTE)
-        SLIDERDATA	pkTouchStrip; /* 1.4 */
+        SLIDERDATA  pkTouchStrip; /* 1.4 */
     #endif
     #if (__EXT(TOUCHRING) == PKEXT_RELATIVE) || (__EXT(TOUCHRING) == PKEXT_ABSOLUTE)
-        SLIDERDATA	pkTouchRing; /* 1.4 */
+        SLIDERDATA  pkTouchRing; /* 1.4 */
     #endif
 
     } __TYPESE;

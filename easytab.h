@@ -383,7 +383,7 @@ typedef enum
 // -----------------------------------------------------------------------------
 
 #define PACKETDATA PK_X | PK_Y | PK_BUTTONS | PK_NORMAL_PRESSURE
-#define PACKETMODE PK_BUTTONS
+#define PACKETMODE 0
 
 // -----------------------------------------------------------------------------
 // pktdef.h
@@ -551,12 +551,34 @@ typedef HCTX (WINAPI * WTMGRDEFCONTEXTEX) (HMGR, UINT, BOOL);
 #endif // WIN32
 
 // -----------------------------------------------------------------------------
+// Enums
+// -----------------------------------------------------------------------------
+
+/*
+    Use this enum in conjunction with EasyTab->Buttons to check for tablet button
+    presses.
+    e.g. To check for lower pen button press, use:
+
+    if (EasyTab->Buttons & EasyTab_Buttons_Pen_Lower)
+    {
+        // Lower button is pressed
+    }
+*/
+enum EasyTab_Buttons_
+{
+    EasyTab_Buttons_Pen_Touch = 1 << 0, // Pen is touching tablet
+    EasyTab_Buttons_Pen_Lower = 1 << 1, // Lower pen button is pressed
+    EasyTab_Buttons_Pen_Upper = 1 << 2, // Upper pen button is pressed
+};
+
+// -----------------------------------------------------------------------------
 // Structs
 // -----------------------------------------------------------------------------
 typedef struct
 {
     int32_t PosX, PosY;
     float   Pressure; // Range: 0.0f to 1.0f
+    int32_t Buttons; // Bit field. Use with the EasyTab_Buttons_ enum.
 
     int32_t RangeX, RangeY;
     int32_t MaxPressure;
@@ -883,6 +905,7 @@ EasyTabResult EasyTab_HandleEvent(HWND Window, UINT Message, LPARAM LParam, WPAR
         EasyTab->PosY = Point.y;
 
         EasyTab->Pressure = (float)Packet.pkNormalPressure / (float)EasyTab->MaxPressure;
+        EasyTab->Buttons = Packet.pkButtons;
         return EASYTAB_OK;
     }
 

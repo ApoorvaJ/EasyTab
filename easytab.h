@@ -626,7 +626,7 @@ extern EasyTabInfo* EasyTab;
 
     EasyTabResult EasyTab_Load(Display* Disp, Window Win);
     EasyTabResult EasyTab_HandleEvent(XEvent* Event);
-    void EasyTab_Unload();
+    void EasyTab_Unload(Display* Disp);
 
 #elif defined(_WIN32)
 
@@ -751,8 +751,9 @@ EasyTabResult EasyTab_HandleEvent(XEvent* Event)
     return EASYTAB_OK;
 }
 
-void EasyTab_Unload()
+void EasyTab_Unload(Display* Disp)
 {
+    XCloseDevice(Disp, EasyTab->Device);
     free(EasyTab);
     EasyTab = NULL;
 }

@@ -930,6 +930,15 @@ EasyTabResult EasyTab_HandleEvent(HWND Window, UINT Message, LPARAM LParam, WPAR
         EasyTab->Buttons = Packet.pkButtons;
         return EASYTAB_OK;
     }
+    else if (Message == WM_ACTIVATE && EasyTab->Context)
+    {
+        BOOL Active = (WParam & 0xFFFF) != 0;
+        EasyTab->WTEnable(EasyTab->Context, Active);
+        if (Active)
+        {
+            EasyTab->WTOverlap(EasyTab->Context, TRUE);
+        }
+    }
 
     return EASYTAB_EVENT_NOT_HANDLED;
 }

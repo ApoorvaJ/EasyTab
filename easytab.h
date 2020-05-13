@@ -138,12 +138,6 @@
     This library is coded in the spirit of the stb libraries and follows the stb
     guidelines.
 
-    ----------------------------------------------------------------------------
-    LICENSE
-    ----------------------------------------------------------------------------
-    This software is in the public domain. Where that dedication is not
-    recognized, you are granted a perpetual, irrevocable license to copy,
-    distribute, and modify this file as you see fit.
 */
 
 // TODO: Null checks and warnings for EasyTab

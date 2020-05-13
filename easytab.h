@@ -608,6 +608,12 @@ typedef struct
     WTMGRCLOSE        WTMgrClose;
     WTMGRDEFCONTEXT   WTMgrDefContext;
     WTMGRDEFCONTEXTEX WTMgrDefContextEx;
+
+    // The output region can be configured by the user.
+    LONG    ScreenOriginX;
+    LONG    ScreenOriginY;
+    float   ScreenAreaRatioX;
+    float   ScreenAreaRatioY;
 #endif // WIN32
 } EasyTabInfo;
 
@@ -838,15 +844,29 @@ EasyTabResult EasyTab_Load_Ex(HWND Window,
         LogContext.lcMoveMask = PACKETDATA;
         LogContext.lcBtnUpMask = LogContext.lcBtnDnMask;
 
+        DWORD CoordRangeX = GetSystemMetrics(SM_CXSCREEN);
+        DWORD CoordRangeY = GetSystemMetrics(SM_CYSCREEN);
+
         LogContext.lcOutOrgX = 0;
         LogContext.lcOutOrgY = 0;
-        LogContext.lcOutExtX = GetSystemMetrics(SM_CXSCREEN);
-        LogContext.lcOutExtY = -GetSystemMetrics(SM_CYSCREEN);
+        LogContext.lcOutExtX = CoordRangeX;
+        LogContext.lcOutExtY = -CoordRangeY;
 
-        LogContext.lcSysOrgX = 0;
-        LogContext.lcSysOrgY = 0;
-        LogContext.lcSysExtX = GetSystemMetrics(SM_CXSCREEN);
-        LogContext.lcSysExtY = GetSystemMetrics(SM_CYSCREEN);
+        EasyTab->ScreenOriginX = LogContext.lcSysOrgX;
+        EasyTab->ScreenOriginY = LogContext.lcSysOrgY;
+        float SysExtX          = LogContext.lcSysExtX;
+        float SysExtY          = LogContext.lcSysExtY;
+
+        if (SysExtX != 0 && SysExtY != 0)
+        {
+            EasyTab->ScreenAreaRatioX = (float)CoordRangeX/SysExtX;
+            EasyTab->ScreenAreaRatioY = (float)CoordRangeY/SysExtY;
+        }
+        else
+        {
+            EasyTab->ScreenAreaRatioX = 1;
+            EasyTab->ScreenAreaRatioY = 1;
+        }
 
         if (TrackingMode == EASYTAB_TRACKING_MODE_RELATIVE)
         {
@@ -914,8 +934,8 @@ EasyTabResult EasyTab_HandleEvent(HWND Window, UINT Message, LPARAM LParam, WPAR
         EasyTab->WTPacket(EasyTab->Context, (UINT)WParam, &Packet))
     {
         POINT Point = { 0 };
-        Point.x = Packet.pkX;
-        Point.y = Packet.pkY;
+        Point.x = EasyTab->ScreenOriginX + Packet.pkX / EasyTab->ScreenAreaRatioX;
+        Point.y = EasyTab->ScreenOriginY + Packet.pkY / EasyTab->ScreenAreaRatioY;
         ScreenToClient(Window, &Point);
         EasyTab->PosX = Point.x;
         EasyTab->PosY = Point.y;
